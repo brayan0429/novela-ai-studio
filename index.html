@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#151515">
+<title>NOVELA AI STUDIO</title>
+<style>
+:root{--bg:#101114;--panel:#1b1d22;--muted:#adb0b8;--gold:#d8b66d;--line:#34363e;--white:#f6f4ef}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--white);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:620px;margin:auto;padding:20px 16px 105px}
+header{display:flex;justify-content:space-between;align-items:center;margin:4px 0 22px}
+.brand{font-size:12px;letter-spacing:2px;color:var(--gold);font-weight:850}
+h1{font-size:27px;margin:8px 0}h2{font-size:19px;margin:0 0 12px}h3{font-size:16px;margin:0 0 7px}
+p{color:var(--muted);line-height:1.45;margin:6px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0}
+.hero{background:linear-gradient(140deg,#30291d,#1b1d22 70%);border-color:#5b4b2e}
+.tag{display:inline-block;border:1px solid #75603a;color:var(--gold);border-radius:20px;padding:4px 8px;font-size:11px}
+button{border:0;border-radius:11px;padding:12px 14px;background:var(--gold);color:#191919;font-weight:750;font-size:14px;cursor:pointer}
+button.secondary{background:#34363e;color:white}button.danger{background:#593536;color:white}
+button.small{padding:8px 10px;font-size:12px}
+input,textarea,select{width:100%;background:#111216;border:1px solid var(--line);border-radius:10px;color:white;padding:12px;margin:5px 0 12px;font:inherit}
+label{font-size:12px;color:var(--muted);display:block}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(620px,100%);display:flex;justify-content:space-around;background:#191a1f;border-top:1px solid var(--line);padding:8px 2px calc(8px + env(safe-area-inset-bottom));z-index:5}
+.nav button{background:transparent;color:var(--muted);padding:7px 3px;font-size:11px;flex:1}
+.nav button.active{color:var(--gold)}
+.page{display:none}.page.active{display:block}
+.item{border-top:1px solid var(--line);padding:12px 0;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.item:first-of-type{border-top:0}.muted{font-size:12px;color:var(--muted)}
+.empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.hidden{display:none!important}.full{width:100%}
+</style>
+</head>
+<body>
+<main>
+<header><div class="brand">NOVELA AI STUDIO</div><span class="tag">VERSIÓN 1.0</span></header>
+
+<section id="home" class="page active">
+ <div class="hero card"><div class="tag">TU ESTUDIO AUDIOVISUAL</div><h1>De la idea a la novela.</h1><p>Organiza proyectos, personajes, escenas y clips en un solo lugar.</p><br><button onclick="go('projects')">Crear o abrir proyecto</button></div>
+ <div class="card"><h2>Resumen</h2><div class="row"><div><div class="muted">Proyectos</div><h1 id="statProjects">0</h1></div><div><div class="muted">Personajes</div><h1 id="statChars">0</h1></div><div><div class="muted">Clips</div><h1 id="statClips">0</h1></div></div></div>
+ <div class="card"><h2>Cómo empezar</h2><p>1. Crea un proyecto.</p><p>2. Añade sus personajes.</p><p>3. Registra escenas y clips.</p><p>4. Exporta una copia de seguridad.</p></div>
+ <div class="card"><h2>Guardar tu trabajo</h2><p>Los datos se guardan en este navegador de este dispositivo. Exporta una copia con frecuencia.</p><div class="row"><button class="secondary" onclick="exportData()">Exportar copia</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importar copia</button></div><input id="importFile" class="hidden" type="file" accept="application/json" onchange="importData(event)"></div>
+</section>
+
+<section id="projects" class="page">
+ <h1>Proyectos</h1><p>Crea y administra tus novelas.</p>
+ <div class="card"><h2>Nuevo proyecto</h2><form id="projectForm"><label>Nombre del proyecto</label><input id="projectName" required placeholder="Ej. Los secretos de la hacienda"><label>Género o estilo</label><input id="projectGenre" placeholder="Drama ranchero"><label>Duración objetivo (minutos)</label><input id="projectDuration" type="number" min="1" value="30"><label>Formato</label><select id="projectRatio"><option>16:9</option><option>9:16</option><option>1:1</option></select><button class="full">Guardar proyecto</button></form></div>
+ <div id="projectList"></div>
+</section>
+
+<section id="characters" class="page">
+ <h1>Personajes</h1><p>Registra la apariencia y las reglas de continuidad.</p>
+ <div class="card"><h2>Nuevo personaje</h2><form id="charForm"><label>Proyecto</label><select id="charProject" required></select><label>Nombre</label><input id="charName" required placeholder="Nombre del personaje"><label>Rol</label><select id="charRole"><option>Protagonista</option><option>Antagonista</option><option>Secundario</option></select><label>Descripción visual</label><textarea id="charVisual" rows="3" placeholder="Rostro, cabello, vestuario y rasgos que deben mantenerse..."></textarea><label>Reglas de continuidad</label><textarea id="charRules" rows="2" placeholder="No cambiar rostro, cabello ni vestuario aprobado..."></textarea><button class="full">Guardar personaje</button></form></div>
+ <div id="charList"></div>
+</section>
+
+<section id="scenes" class="page">
+ <h1>Escenas</h1><p>Divide la historia en momentos dramáticos.</p>
+ <div class="card"><h2>Nueva escena</h2><form id="sceneForm"><label>Proyecto</label><select id="sceneProject" required></select><label>Número de escena</label><input id="sceneNumber" type="number" min="1" value="1"><label>Nombre o lugar</label><input id="sceneName" required placeholder="Ej. El secreto del establo"><label>Momento</label><select id="sceneTime"><option>Atardecer</option><option>Mañana</option><option>Tarde</option><option>Noche</option><option>Madrugada</option></select><label>Objetivo dramático</label><textarea id="sceneGoal" rows="3" placeholder="¿Qué debe cambiar o descubrirse en esta escena?"></textarea><button class="full">Guardar escena</button></form></div>
+ <div id="sceneList"></div>
+</section>
+
+<section id="clips" class="page">
+ <h1>Clips</h1><p>Guarda la planificación y el prompt de cada fragmento.</p>
+ <div class="card"><h2>Nuevo clip</h2><form id="clipForm"><label>Escena</label><select id="clipScene" required></select><label>Número de clip</label><input id="clipNumber" type="number" min="1" value="1"><label>Duración objetivo (segundos)</label><input id="clipSeconds" type="number" min="1" value="8"><label>Acción</label><textarea id="clipAction" rows="3" placeholder="Describe lo que ocurre, en orden..."></textarea><label>Diálogo exacto</label><textarea id="clipDialogue" rows="2" placeholder="Personaje: frase exacta..."></textarea><label>Cámara y actuación</label><textarea id="clipCamera" rows="2" placeholder="Plano, movimiento, expresiones y tono de voz..."></textarea><label>Prompt completo</label><textarea id="clipPrompt" rows="4" placeholder="Pega aquí el prompt listo para la herramienta de vídeo..."></textarea><button class="full">Guardar clip</button></form></div>
+ <div id="clipList"></div>
+</section>
+
+<section id="backup" class="page">
+ <h1>Copias y datos</h1><div class="card"><h2>Exportar</h2><p>Descarga un archivo JSON con tus proyectos, personajes, escenas y clips.</p><button class="full" onclick="exportData()">Descargar copia de seguridad</button></div><div class="card"><h2>Importar</h2><p>Recupera una copia exportada anteriormente. La importación reemplaza los datos actuales de esta aplicación.</p><button class="secondary full" onclick="document.getElementById('importFile').click()">Elegir archivo JSON</button></div><div class="card"><h2>Almacenamiento</h2><p>Esta versión guarda los datos localmente en el navegador. Si borras los datos del navegador o cambias de dispositivo, podrías perderlos si no tienes una copia exportada.</p></div></section>
+</main>
+<nav class="nav">
+<button class="active" onclick="go('home',this)">⌂<br>Inicio</button>
+<button onclick="go('projects',this)">▣<br>Proyectos</button>
+<button onclick="go('characters',this)">♙<br>Personajes</button>
+<button onclick="go('scenes',this)">▤<br>Escenas</button>
+<button onclick="go('clips',this)">▶<br>Clips</button>
+<button onclick="go('backup',this)">↧<br>Copias</button>
+</nav>
+<script>
+const KEY='novela_ai_studio_v1';
+let db=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{projects:[],characters:[],scenes:[],clips:[]}}catch(e){return {projects:[],characters:[],scenes:[],clips:[]}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function go(page,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(page).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');else{let i={home:0,projects:1,characters:2,scenes:3,clips:4,backup:5}[page];document.querySelectorAll('.nav button')[i].classList.add('active')}window.scrollTo(0,0);render()}
+function options(sel,arr,placeholder){sel.innerHTML='<option value="">'+placeholder+'</option>'+arr.map(x=>`<option value="${x.id}">${esc(x.name||x.title)}</option>`).join('')}
+function render(){
+ document.getElementById('statProjects').textContent=db.projects.length;document.getElementById('statChars').textContent=db.characters.length;document.getElementById('statClips').textContent=db.clips.length;
+ options(document.getElementById('charProject'),db.projects,'Selecciona proyecto');options(document.getElementById('sceneProject'),db.projects,'Selecciona proyecto');
+ options(document.getElementById('clipScene'),db.scenes,'Selecciona escena');
+ document.getElementById('projectList').innerHTML=db.projects.length?db.projects.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><p>${esc(p.genre)} · ${p.duration} min · ${esc(p.ratio)}</p><span class="tag">En desarrollo</span> <button class="danger small" onclick="del('projects','${p.id}')">Eliminar</button></div>`).join(''):'<div class="empty">Todavía no hay proyectos.</div>';
+ document.getElementById('charList').innerHTML=db.characters.length?db.characters.map(c=>`<div class="card"><h3>${esc(c.name)} <span class="tag">${esc(c.role)}</span></h3><p>${esc(projectName(c.projectId))}</p><p>${esc(c.visual)}</p><p class="muted">Continuidad: ${esc(c.rules)}</p><button class="danger small" onclick="del('characters','${c.id}')">Eliminar</button></div>`).join(''):'<div class="empty">Todavía no hay personajes.</div>';
+ document.getElementById('sceneList').innerHTML=db.scenes.length?db.scenes.map(s=>`<div class="card"><h3>Escena ${s.number}: ${esc(s.name)}</h3><p>${esc(projectName(s.projectId))} · ${esc(s.time)}</p><p>${esc(s.goal)}</p><button class="danger small" onclick="del('scenes','${s.id}')">Eliminar</button></div>`).join(''):'<div class="empty">Todavía no hay escenas.</div>';
+ document.getElementById('clipList').innerHTML=db.clips.length?db.clips.map(c=>`<div class="card"><h3>Clip ${c.number} · ${c.seconds} segundos</h3><p>${esc(sceneName(c.sceneId))}</p><p>${esc(c.action)}</p><p><b>Diálogo:</b> ${esc(c.dialogue)}</p><details><summary>Ver prompt y detalles</summary><p>${esc(c.camera)}</p><p>${esc(c.prompt)}</p></details><button class="secondary small" onclick="copyPrompt('${c.id}')">Copiar prompt</button> <button class="danger small" onclick="del('clips','${c.id}')">Eliminar</button></div>`).join(''):'<div class="empty">Todavía no hay clips.</div>';
+}
+function projectName(pid){return db.projects.find(x=>x.id===pid)?.name||'Proyecto eliminado'}
+function sceneName(sid){return db.scenes.find(x=>x.id===sid)?.name||'Escena'}
+function del(type,itemId){if(!confirm('¿Seguro que quieres eliminar este elemento?'))return;db[type]=db[type].filter(x=>x.id!==itemId);save()}
+document.getElementById('projectForm').addEventListener('submit',e=>{e.preventDefault();const v=id=>document.getElementById(id).value;db.projects.push({id:id(),name:v('projectName'),genre:v('projectGenre'),duration:Number(v('projectDuration')),ratio:v('projectRatio')});e.target.reset();document.getElementById('projectDuration').value=30;save();alert('Proyecto guardado.')});
+document.getElementById('charForm').addEventListener('submit',e=>{e.preventDefault();const v=id=>document.getElementById(id).value;db.characters.push({id:id(),projectId:v('charProject'),name:v('charName'),role:v('charRole'),visual:v('charVisual'),rules:v('charRules')});e.target.reset();save();alert('Personaje guardado.')});
+document.getElementById('sceneForm').addEventListener('submit',e=>{e.preventDefault();const v=id=>document.getElementById(id).value;db.scenes.push({id:id(),projectId:v('sceneProject'),number:Number(v('sceneNumber')),name:v('sceneName'),time:v('sceneTime'),goal:v('sceneGoal')});e.target.reset();document.getElementById('sceneNumber').value=1;save();alert('Escena guardada.')});
+document.getElementById('clipForm').addEventListener('submit',e=>{e.preventDefault();const v=id=>document.getElementById(id).value;db.clips.push({id:id(),sceneId:v('clipScene'),number:Number(v('clipNumber')),seconds:Number(v('clipSeconds')),action:v('clipAction'),dialogue:v('clipDialogue'),camera:v('clipCamera'),prompt:v('clipPrompt')});e.target.reset();document.getElementById('clipNumber').value=1;document.getElementById('clipSeconds').value=8;save();alert('Clip guardado.')});
+function copyPrompt(cid){let c=db.clips.find(x=>x.id===cid);if(!c)return;navigator.clipboard?.writeText(c.prompt).then(()=>alert('Prompt copiado.')).catch(()=>alert(c.prompt||'No hay prompt escrito.'))}
+function exportData(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='novela_ai_studio_copia.json';a.click();URL.revokeObjectURL(a.href)}
+function importData(ev){let f=ev.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!d.projects||!d.characters||!d.scenes||!d.clips)throw Error();if(!confirm('Esto reemplazará los datos actuales. ¿Continuar?'))return;db=d;save();alert('Copia importada correctamente.')}catch(e){alert('El archivo no parece ser una copia válida de NOVELA AI STUDIO.')}};r.readAsText(f);ev.target.value=''}
+render();
+</script>
+</body></html>
